@@ -1,0 +1,169 @@
+{
+  "name": "pi-dock",
+  "displayName": "Pi Dock",
+  "description": "Your real Pi TUI in a VS Code sidebar view. No bundled agent, no native modules: VS Code shows a web page, ttyd turns your pi command into one.",
+  "version": "0.1.0",
+  "publisher": "BenJGadd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BenJGadd/pi-dock.git"
+  },
+  "homepage": "https://github.com/BenJGadd/pi-dock#readme",
+  "bugs": {
+    "url": "https://github.com/BenJGadd/pi-dock/issues"
+  },
+  "icon": "media/icon.png",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "keywords": [
+    "pi",
+    "terminal",
+    "tui",
+    "sidebar",
+    "agent",
+    "ttyd",
+    "dtach",
+    "xterm"
+  ],
+  "extensionKind": [
+    "workspace"
+  ],
+  "main": "./extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "piDock",
+          "title": "Pi",
+          "icon": "media/pi.svg"
+        }
+      ]
+    },
+    "views": {
+      "piDock": [
+        {
+          "type": "webview",
+          "id": "piDock.terminal",
+          "name": "Pi",
+          "icon": "media/pi.svg",
+          "contextualTitle": "Pi Dock"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "piDock.restart",
+        "title": "Restart Pi",
+        "category": "Pi Dock",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "piDock.focus",
+        "title": "Focus Pi",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.showLog",
+        "title": "Show Log",
+        "category": "Pi Dock"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "piDock.restart",
+          "when": "view == piDock.terminal",
+          "group": "navigation"
+        }
+      ]
+    },
+    "keybindings": [
+      {
+        "command": "piDock.focus",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p"
+      }
+    ],
+    "configuration": {
+      "title": "Pi Dock",
+      "properties": {
+        "piDock.command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "pi"
+          ],
+          "markdownDescription": "The command Pi Dock runs in the sidebar, as an argument list. Example: `[\"pi\", \"-c\"]` continues your most recent session if Pi itself was stopped. With dtach installed (see `piDock.persist`) the process survives moving the view and reloading the window, so `-c` is rarely needed."
+        },
+        "piDock.persist": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Keep Pi running when the view is moved or the window reloads, by running it under [dtach](https://github.com/crigler/dtach). Needs `dtach` installed; without it Pi starts over each time and a one-time warning says so."
+        },
+        "piDock.dtachPath": {
+          "type": "string",
+          "default": "dtach",
+          "description": "Path to the dtach executable. Leave as \"dtach\" to use the one on your PATH."
+        },
+        "piDock.ttydPath": {
+          "type": "string",
+          "default": "ttyd",
+          "description": "Path to the ttyd executable. Leave as \"ttyd\" to use the one on your PATH."
+        },
+        "piDock.fontSize": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "default": null,
+          "markdownDescription": "Terminal font size in pixels. Empty uses `terminal.integrated.fontSize`."
+        },
+        "piDock.fontFamily": {
+          "type": "string",
+          "default": "",
+          "description": "Terminal font family. Empty uses terminal.integrated.fontFamily, then editor.fontFamily. Fonts that are not installed are skipped."
+        },
+        "piDock.theme": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "xterm.js colours that override single entries of the theme read live from your VS Code color theme, e.g. `{\"background\": \"#181818\"}`. Empty follows VS Code's terminal colors exactly."
+        },
+        "piDock.clientOptions": {
+          "type": "object",
+          "default": {},
+          "markdownDescription": "Extra [xterm.js options](https://xtermjs.org/docs/api/terminal/interfaces/iterminaloptions/) applied last, e.g. `{\"scrollback\": 5000, \"cursorBlink\": true}`. Read when the view opens."
+        },
+        "piDock.escapeActions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "workbench.action.showCommands"
+          ],
+          "markdownDescription": "VS Code commands whose keyboard shortcuts leave the terminal for VS Code while it has focus. Pi Dock looks up the chords in VS Code's own keybindings (defaults, your `keybindings.json`, and extensions), so rebinding a command in VS Code moves its escape with it, and two-step chords work. Everything not bound to a listed command goes to Pi. The default gives you the command palette (F1, Ctrl+Shift+P), which costs Pi its backward model cycle. See the README for the Pi keys other common commands would take."
+        },
+        "piDock.extraArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Extra arguments passed to ttyd before the built-in ones."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "package": "vsce package"
+  }
+}

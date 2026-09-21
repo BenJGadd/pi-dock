@@ -1,0 +1,11 @@
+{
+  "//": "So an editor reads the JSDoc in this repo: hovers, completion and go-to-definition across the three layers. `module: node16` picks CommonJS from package.json having no `type` field, and brings its own current module resolution; the older `moduleResolution: node` is deprecated as of TypeScript 6. checkJs is off because a full type check also needs @types/node and @types/vscode, which this extension deliberately has no dependencies to install. To run one anyway: npm i -D @types/node @types/vscode && npx tsc -p jsconfig.json --checkJs",
+  "compilerOptions": {
+    "target": "es2022",
+    "lib": ["es2022", "dom"],
+    "module": "node16",
+    "checkJs": false,
+    "noEmit": true
+  },
+  "include": ["extension.js", "types.js", "host/**/*.js", "lib/**/*.js", "media/terminal.js", "test/**/*.js"]
+}
