@@ -2,7 +2,7 @@
   "name": "pi-dock",
   "displayName": "Pi Dock",
   "description": "Your real Pi TUI in a VS Code sidebar view. No bundled agent, no native modules: VS Code shows a web page, ttyd turns your pi command into one.",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "BenJGadd",
   "license": "MIT",
   "repository": {
@@ -72,9 +72,45 @@
         "command": "piDock.showLog",
         "title": "Show Log",
         "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.setBadge",
+        "title": "Set Badge",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.toggle",
+        "title": "Toggle Pi",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.checkSetup",
+        "title": "Check Setup",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.newSession",
+        "title": "New Session",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.resumeSession",
+        "title": "Resume Session…",
+        "category": "Pi Dock"
+      },
+      {
+        "command": "piDock.forkSession",
+        "title": "Fork Session…",
+        "category": "Pi Dock"
       }
     ],
     "menus": {
+      "commandPalette": [
+        {
+          "command": "piDock.setBadge",
+          "when": "false"
+        }
+      ],
       "view/title": [
         {
           "command": "piDock.restart",
@@ -85,9 +121,15 @@
     },
     "keybindings": [
       {
-        "command": "piDock.focus",
+        "command": "piDock.toggle",
         "key": "ctrl+alt+p",
         "mac": "cmd+alt+p"
+      },
+      {
+        "command": "workbench.action.focusActiveEditorGroup",
+        "key": "ctrl+alt+p",
+        "mac": "cmd+alt+p",
+        "when": "focusedView == piDock.terminal"
       }
     ],
     "configuration": {
@@ -102,6 +144,11 @@
             "pi"
           ],
           "markdownDescription": "The command Pi Dock runs in the sidebar, as an argument list. Example: `[\"pi\", \"-c\"]` continues your most recent session if Pi itself was stopped. With dtach installed (see `piDock.persist`) the process survives moving the view and reloading the window, so `-c` is rarely needed."
+        },
+        "piDock.resume": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Start Pi on the conversation it was in when the window last closed or reloaded (`--session`), for this workspace folder. **Pi Dock: New Session** starts a fresh one and forgets the old. Off means every window start is a new conversation."
         },
         "piDock.persist": {
           "type": "boolean",
@@ -147,9 +194,10 @@
             "type": "string"
           },
           "default": [
-            "workbench.action.showCommands"
+            "workbench.action.showCommands",
+            "piDock.toggle"
           ],
-          "markdownDescription": "VS Code commands whose keyboard shortcuts leave the terminal for VS Code while it has focus. Pi Dock looks up the chords in VS Code's own keybindings (defaults, your `keybindings.json`, and extensions), so rebinding a command in VS Code moves its escape with it, and two-step chords work. Everything not bound to a listed command goes to Pi. The default gives you the command palette (F1, Ctrl+Shift+P), which costs Pi its backward model cycle. See the README for the Pi keys other common commands would take."
+          "markdownDescription": "VS Code commands whose keyboard shortcuts leave the terminal for VS Code while it has focus. Pi Dock looks up the chords in VS Code's own keybindings (defaults, your `keybindings.json`, and extensions), so rebinding a command in VS Code moves its escape with it, and two-step chords work. Everything not bound to a listed command goes to Pi. The default gives you the command palette (F1, Ctrl+Shift+P), which costs Pi its backward model cycle, and Pi Dock's own toggle (Ctrl+Alt+P), which costs nothing Pi uses. See the README for the Pi keys other common commands would take."
         },
         "piDock.extraArgs": {
           "type": "array",
@@ -160,7 +208,69 @@
           "description": "Extra arguments passed to ttyd before the built-in ones."
         }
       }
-    }
+    },
+    "terminal": {
+      "profiles": [
+        {
+          "id": "piDock.profile",
+          "title": "Pi",
+          "icon": "hubot"
+        }
+      ]
+    },
+    "walkthroughs": [
+      {
+        "id": "piDock.setup",
+        "title": "Set up Pi Dock",
+        "description": "Three programs on your PATH, then the sidebar. Check again says what is still missing; mark a step done once it is there.",
+        "steps": [
+          {
+            "id": "piDock.setup.ttyd",
+            "title": "Install ttyd",
+            "description": "Serves your pi command as a terminal the sidebar can draw.\n[Check again](command:piDock.checkSetup)",
+            "media": {
+              "markdown": "media/walkthrough/ttyd.md"
+            },
+            "completionEvents": [
+              "onContext:piDock.hasTtyd"
+            ]
+          },
+          {
+            "id": "piDock.setup.dtach",
+            "title": "Install dtach",
+            "description": "Keeps Pi running when the sidebar moves. Optional.\n[Check again](command:piDock.checkSetup)",
+            "media": {
+              "markdown": "media/walkthrough/dtach.md"
+            },
+            "completionEvents": [
+              "onContext:piDock.hasDtach"
+            ]
+          },
+          {
+            "id": "piDock.setup.pi",
+            "title": "Install Pi",
+            "description": "So that ``pi`` works in a terminal, or point ``piDock.command`` at it.\n[Check again](command:piDock.checkSetup)",
+            "media": {
+              "markdown": "media/walkthrough/pi.md"
+            },
+            "completionEvents": [
+              "onContext:piDock.hasPi"
+            ]
+          },
+          {
+            "id": "piDock.setup.open",
+            "title": "Open the sidebar",
+            "description": "Click the π icon, or press Ctrl+Alt+P.\n[Open Pi](command:piDock.focus)",
+            "media": {
+              "markdown": "media/walkthrough/open.md"
+            },
+            "completionEvents": [
+              "onContext:piDock.sidebarSeen"
+            ]
+          }
+        ]
+      }
+    ]
   },
   "scripts": {
     "test": "node --test test/*.test.js",

@@ -1,0 +1,19 @@
+<!-- The pi mark is Pi's own badge by Earendil Inc. (the square mark at https://pi.dev/favicon.svg,
+     whose grid is exact at 140 units so it lands on whole pixels at tab size). It is one path:
+     drawn as separate shapes, the edges they shared were each anti-aliased on their own and left
+     a hairline through the fill. The structure around it, and the tile, are Pi Dock's own. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800">
+  <rect width="800" height="800" rx="176" fill="#1E222E"/>
+  <g transform="translate(283,120) scale(0.41964)" fill="#E8ECF4">
+    <path d="M0 0H420V280H560V560H420V280H280V140H140V280H280V420H140V560H0Z"/>
+  </g>
+  <g fill="none" stroke="#60A5FA" stroke-linecap="round">
+    <path d="M209 492 V608" stroke-width="38"/>
+    <path d="M400 492 V608" stroke-width="38"/>
+    <path d="M591 492 V608" stroke-width="38"/>
+    <path d="M142 492 H658" stroke-width="44"/>
+    <path d="M164 672 H346" stroke-width="28" opacity="0.45"/>
+    <path d="M414 672 H636" stroke-width="28" opacity="0.45"/>
+    <path d="M264 724 H536" stroke-width="28" opacity="0.28"/>
+  </g>
+</svg>

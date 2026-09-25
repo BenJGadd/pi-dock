@@ -9,8 +9,9 @@ const cp = require('child_process');
 const crypto = require('crypto');
 const vscode = require('vscode');
 const { buildArgs, ttydEnv, freePort, waitForPort, tailLines } = require('../lib/ttyd');
-const { sessionSocket, persistentCommand } = require('../lib/session');
+const { sessionSocket, persistentCommand, killSession } = require('../lib/dtach');
 const { isInstalled } = require('../lib/executable');
+const { statePath } = require('../lib/resume');
 const { workspaceCwd } = require('./settings');
 
 const START_TIMEOUT_MS = 10000;
@@ -46,7 +47,7 @@ const missingProgram = (program) =>
  * @param {string} token
  * @returns {import('../types').TtydServer}
  */
-const newServer = (port, token) => ({ proc: null, port, token, alive: true, stopped: false, error: null, stderr: '', snapshot: null });
+const newServer = (port, token) => ({ proc: null, port, token, alive: true, stopped: false, error: null, stderr: '' });
 
 /**
  * Decides whether to give up waiting for ttyd to listen.
@@ -68,7 +69,7 @@ function rememberStderr(server, text) {
 }
 
 /**
- * Stops a ttyd and marks it as ours, so its exit is not reported as a crash.
+ * Stops a ttyd and marks the stop as deliberate, so its exit is not reported as a crash.
  *
  * @param {import('../types').TtydServer} server
  */
@@ -98,18 +99,21 @@ function withStderr(err, server) {
 }
 
 /**
- * Creates this window's ttyd and the three things the extension does with it.
+ * Creates this window's ttyd and what the extension does with it: start it if it is not running,
+ * say which one is running, stop it, and end the Pi it kept alive.
  *
  * @param {object} args
  * @param {import('vscode').OutputChannel} args.output ttyd's own output goes into it word for word.
  * @param {(err: Error) => void} args.onCrash Called if ttyd dies on its own after starting.
+ * @param {string} args.version Pi Dock's version, which Pi sees as PI_DOCK.
  * @returns {{
  *   ensure: (settings: import('../types').Settings) => Promise<import('../types').TtydServer>,
- *   rememberSnapshot: (snapshot: import('../types').Snapshot|null) => void,
+ *   current: () => import('../types').TtydServer|null,
  *   stop: () => Promise<void>,
+ *   endSession: (settings: import('../types').Settings) => void,
  * }}
  */
-function createServer({ output, onCrash }) {
+function createServer({ output, onCrash, version }) {
   /** @type {import('../types').TtydServer|null} */
   let running = null;
   /** @type {Promise<import('../types').TtydServer>|null} a start underway, so two pages share one ttyd */
@@ -132,15 +136,8 @@ function createServer({ output, onCrash }) {
     return starting;
   }
 
-  /**
-   * Holds on to the terminal as the page last drew it, for the page that replaces it. It belongs to
-   * this ttyd; the next one starts a new Pi with a blank screen.
-   *
-   * @param {import('../types').Snapshot|null} snapshot
-   */
-  function rememberSnapshot(snapshot) {
-    if (running) running.snapshot = snapshot;
-  }
+  /** The ttyd running now, or null. The page keeps its screen snapshot against this identity. */
+  const current = () => (running && running.alive ? running : null);
 
   /**
    * Stops ttyd.
@@ -186,7 +183,7 @@ function createServer({ output, onCrash }) {
     output.appendLine(`[pi-dock] ${settings.ttydPath} ${args.join(' ')}`);
     server.proc = cp.spawn(settings.ttydPath, args, {
       cwd,
-      env: ttydEnv(process.env),
+      env: ttydEnv(process.env, version, statePath(cwd)),
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });
@@ -228,7 +225,7 @@ function createServer({ output, onCrash }) {
 
   /**
    * Reports a ttyd that died on its own, since otherwise the sidebar would sit there showing a dead
-   * terminal. An exit we asked for is not a crash, nor is one from a ttyd already replaced.
+   * terminal. An exit that was asked for is not a crash, nor is one from a ttyd already replaced.
    *
    * @param {import('../types').TtydServer} server
    */
@@ -259,6 +256,24 @@ function createServer({ output, onCrash }) {
     return settings.command;
   }
 
+  /**
+   * Ends this workspace's Pi, if one is running.
+   *
+   * A session never outlives the extension that started it. Pi switches on two terminal features
+   * when it starts (Shift+Enter, and pasting more than one line), and those belong to the page
+   * connected at the time. A Pi kept across a window reload would be joined to a page that never
+   * saw them switched on, and both would quietly stop working. Moving the sidebar keeps the
+   * extension running, so that is the one case where Pi is kept.
+   *
+   * The conversation does outlive it: the next start is a new Pi process on the same session file
+   * (host/sessions.js), which negotiates its terminal afresh. The process ends; the session goes on.
+   *
+   * @param {import('../types').Settings} settings
+   */
+  function endSession(settings) {
+    if (settings.persist) killSession(sessionSocket(workspaceCwd()), settings.dtachPath);
+  }
+
   /** Warns about a missing dtach once per window, not once per page. */
   function warnNoDtach() {
     if (warnedNoDtach) return;
@@ -266,7 +281,7 @@ function createServer({ output, onCrash }) {
     vscode.window.showWarningMessage('Pi Dock: dtach was not found, so Pi will start over if you move the view or reload the window. Install dtach (or set piDock.dtachPath) to keep the session alive.');
   }
 
-  return { ensure, rememberSnapshot, stop };
+  return { ensure, current, stop, endSession };
 }
 
 module.exports = { createServer };

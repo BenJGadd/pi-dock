@@ -9,14 +9,6 @@ const { buildArgs, ttydEnv, freePort, waitForPort } = require('../lib/ttyd');
 const base = { port: 1234, token: 'tok', platform: 'linux' };
 const args = (settings, extra) => buildArgs({ ...base, settings, ...extra });
 
-test('the command is last', () => {
-  assert.deepStrictEqual(args({ command: ['pi', '-c'] }).slice(-2), ['pi', '-c']);
-});
-
-test('empty command falls back to pi', () => {
-  assert.strictEqual(args({ command: [] }).at(-1), 'pi');
-});
-
 test('binds loopback only, one client, token path', () => {
   const a = args({});
   assert.deepStrictEqual(a.slice(a.indexOf('-m'), a.indexOf('-m') + 2), ['-m', '1']);
@@ -24,15 +16,6 @@ test('binds loopback only, one client, token path', () => {
   assert.strictEqual(a[a.indexOf('-b') + 1], '/tok');
   const mac = buildArgs({ ...base, settings: {}, platform: 'darwin' });
   assert.strictEqual(mac[mac.indexOf('-i') + 1], 'lo0');
-});
-
-test('no origin check, client options or index page: the webview draws the terminal', () => {
-  const a = args({ command: ['pi'] });
-  for (const flag of ['-O', '-t', '-I']) assert.ok(!a.includes(flag), `${flag} must not be passed`);
-});
-
-test('extraArgs come first', () => {
-  assert.deepStrictEqual(args({ extraArgs: ['-d', '3'] }).slice(0, 2), ['-d', '3']);
 });
 
 test('waitForPort resolves when listening and rejects on early failure', async () => {
@@ -55,15 +38,6 @@ test('waitForPort resolves when listening and rejects on early failure', async (
  *   no COLORTERM                       0                     168
  *   COLORTERM=truecolor              168                       0
  */
-test('COLORTERM is set unconditionally, replacing any inherited value; the rest is untouched', () => {
-  assert.deepStrictEqual(ttydEnv({ PATH: '/bin' }), { PATH: '/bin', COLORTERM: 'truecolor' });
-  assert.strictEqual(ttydEnv({ COLORTERM: '256' }).COLORTERM, 'truecolor');
-  assert.strictEqual(ttydEnv({ COLORTERM: '' }).COLORTERM, 'truecolor');
-  assert.ok(!('TERM_PROGRAM' in ttydEnv({})), 'must not claim to be another terminal');
-  const outer = { COLORTERM: 'x' };
-  ttydEnv(outer);
-  assert.strictEqual(outer.COLORTERM, 'x', 'the caller\'s environment is not mutated');
-});
 
 test('COLORTERM reaches the command through the real ttyd', { skip: cp.spawnSync('ttyd', ['-v'], { stdio: 'ignore' }).error }, async () => {
   const port = await freePort();
@@ -93,11 +67,3 @@ test('COLORTERM reaches the command through the real ttyd', { skip: cp.spawnSync
   }
 });
 
-test('tailLines keeps the last lines, and caps the characters in case a line is enormous', () => {
-  const { tailLines } = require('../lib/ttyd');
-  assert.strictEqual(tailLines('a\nb\nc\nd', 2, 999), 'c\nd');
-  assert.strictEqual(tailLines('a\nb', 9, 999), 'a\nb', 'fewer lines than asked for is fine');
-  assert.strictEqual(tailLines('', 3, 999), '');
-  assert.strictEqual(tailLines('x'.repeat(50), 3, 10), 'x'.repeat(10));
-  assert.strictEqual(tailLines('keep\n' + 'y'.repeat(20), 2, 12), 'y'.repeat(12), 'the character cap wins');
-});

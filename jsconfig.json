@@ -7,5 +7,5 @@
     "checkJs": false,
     "noEmit": true
   },
-  "include": ["extension.js", "types.js", "host/**/*.js", "lib/**/*.js", "media/terminal.js", "test/**/*.js"]
+  "include": ["extension.js", "types.js", "host/**/*.js", "lib/**/*.js", "page/*.js", "pi/*.js", "test/**/*.js"]
 }

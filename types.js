@@ -12,6 +12,7 @@
  * @typedef {object} Settings
  * @property {string[]} command What to run. Empty means `pi`.
  * @property {boolean} persist Run Pi under dtach so it survives the page.
+ * @property {boolean} resume Start Pi on the session recorded at the last start (lib/resume.js).
  * @property {string} dtachPath Path to dtach, or just `dtach` to find it on PATH.
  * @property {string} ttydPath Path to ttyd, or just `ttyd` to find it on PATH.
  * @property {number|undefined} fontSize Pixels. Undefined follows VS Code.
@@ -91,6 +92,60 @@
  */
 
 /**
+ * The page asking which of the paths it found in the output are files. Relative paths are from
+ * the folder Pi runs in.
+ *
+ * @typedef {object} ResolveMessage
+ * @property {'resolve'} type
+ * @property {number} id Echoed in the answer.
+ * @property {string[]} paths
+ */
+
+/**
+ * The answer, one entry per path asked about.
+ *
+ * @typedef {object} ResolvedMessage
+ * @property {'resolved'} type
+ * @property {number} id
+ * @property {Record<string, boolean>} found
+ */
+
+/**
+ * A path Ctrl+clicked in the output. Relative paths are from the folder Pi runs in.
+ *
+ * @typedef {object} OpenMessage
+ * @property {'open'} type
+ * @property {string} path
+ * @property {number} line 1-based.
+ * @property {number} column 1-based.
+ */
+
+/**
+ * An image pasted into the terminal page, as the browser hands it over.
+ *
+ * @typedef {object} ImageMessage
+ * @property {'image'} type
+ * @property {string} mime e.g. `image/png`.
+ * @property {string} dataUrl `data:<mime>;base64,...`
+ */
+
+/**
+ * The page gained or lost keyboard focus. The toggle command reads the last value.
+ *
+ * @typedef {object} FocusMessage
+ * @property {'focus'} type
+ * @property {boolean} focused
+ */
+
+/**
+ * Text the extension asks the page to type into Pi, as one paste.
+ *
+ * @typedef {object} PasteMessage
+ * @property {'paste'} type
+ * @property {string} text
+ */
+
+/**
  * An error carrying the failing program's own output. host/server.js fills `details` with whatever
  * ttyd printed, and the error page shows it below the message.
  *
@@ -105,10 +160,9 @@
  * @property {number} port Listened on for this machine only.
  * @property {string} token A random string in the URL; only a page that knows it can connect.
  * @property {boolean} alive False once it has exited or failed to start.
- * @property {boolean} stopped True when we stopped it, so its exit is not a crash.
+ * @property {boolean} stopped True when Pi Dock stopped it, so its exit is not a crash.
  * @property {Error|null} error Why it could not start, if it could not.
  * @property {string} stderr The last few lines it printed, for the error page.
- * @property {Snapshot|null} snapshot The last snapshot the page sent for this ttyd.
  */
 
 module.exports = {};

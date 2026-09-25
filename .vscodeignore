@@ -1,4 +1,12 @@
+# The package carries what the extension needs to run and what the editor shows about it, and
+# nothing that only proves it works or documents it: no tests, no harness, no pictures, no notes.
 test/**
-.gitignore
+tools/**
+docs/**
+media/screenshots/**
+media/icon.svg
+types.js
 jsconfig.json
+.gitignore
+.vscodeignore
 *.vsix
