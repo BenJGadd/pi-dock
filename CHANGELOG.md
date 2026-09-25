@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3
+
+A folder can no longer decide what Pi Dock runs.
+
+- `piDock.command`, `piDock.ttydPath`, `piDock.dtachPath` and `piDock.extraArgs` are machine
+  scope: your user settings set them, a repository's `.vscode/settings.json` cannot.
+- The log shows ttyd's command line with the URL token replaced.
+
 ## 0.2.2
 
 Pi's scrollbar no longer breaks on a row with an emoji in it.

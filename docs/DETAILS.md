@@ -173,6 +173,11 @@ ttyd listens on loopback only, on a random port, behind a random 32-character UR
 accepts one client. Anything else running as you could reach it, in the same way it could already
 run `pi`.
 
+The four settings that decide what runs, `piDock.command`, `piDock.ttydPath`, `piDock.dtachPath`
+and `piDock.extraArgs`, are machine scope: only your user settings, or the remote's, can set them,
+never a folder's `.vscode/settings.json`. A cloned repository cannot point the sidebar at a script
+of its own. The log shows ttyd's command line with the URL token replaced.
+
 ## Layout
 
 One file per feature, so a change touches one place.

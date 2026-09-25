@@ -92,3 +92,10 @@ test('the VS Code badge in the README states the floor the manifest enforces', (
   assert.ok(readme.includes(`VS Code ${floor} or newer`), 'and its alt text must agree');
   assert.ok(readme.includes(`VSCodium-${floor}%2B-`), 'VSCodium shares the floor, so its badge says the same');
 });
+
+test('the settings that decide what runs are machine scope, so a folder cannot set them', () => {
+  const properties = pkg.contributes.configuration.properties;
+  for (const key of ['piDock.command', 'piDock.ttydPath', 'piDock.dtachPath', 'piDock.extraArgs']) {
+    assert.strictEqual(properties[key].scope, 'machine', key);
+  }
+});

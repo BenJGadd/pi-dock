@@ -2,7 +2,7 @@
   "name": "pi-dock",
   "displayName": "Pi Dock",
   "description": "Your real Pi TUI in a VS Code sidebar view. No bundled agent, no native modules: VS Code shows a web page, ttyd turns your pi command into one.",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "BenJGadd",
   "license": "MIT",
   "repository": {
@@ -136,6 +136,7 @@
       "title": "Pi Dock",
       "properties": {
         "piDock.command": {
+          "scope": "machine",
           "type": "array",
           "items": {
             "type": "string"
@@ -156,11 +157,13 @@
           "markdownDescription": "Keep Pi running when the view is moved or the window reloads, by running it under [dtach](https://github.com/crigler/dtach). Needs `dtach` installed; without it Pi starts over each time and a one-time warning says so."
         },
         "piDock.dtachPath": {
+          "scope": "machine",
           "type": "string",
           "default": "dtach",
           "description": "Path to the dtach executable. Leave as \"dtach\" to use the one on your PATH."
         },
         "piDock.ttydPath": {
+          "scope": "machine",
           "type": "string",
           "default": "ttyd",
           "description": "Path to the ttyd executable. Leave as \"ttyd\" to use the one on your PATH."
@@ -200,6 +203,7 @@
           "markdownDescription": "VS Code commands whose keyboard shortcuts leave the terminal for VS Code while it has focus. Pi Dock looks up the chords in VS Code's own keybindings (defaults, your `keybindings.json`, and extensions), so rebinding a command in VS Code moves its escape with it, and two-step chords work. Everything not bound to a listed command goes to Pi. The default gives you the command palette (F1, Ctrl+Shift+P), which costs Pi its backward model cycle, and Pi Dock's own toggle (Ctrl+Alt+P), which costs nothing Pi uses. See the README for the Pi keys other common commands would take."
         },
         "piDock.extraArgs": {
+          "scope": "machine",
           "type": "array",
           "items": {
             "type": "string"

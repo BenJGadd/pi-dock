@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const net = require('net');
 const cp = require('child_process');
-const { buildArgs, ttydEnv, freePort, waitForPort } = require('../lib/ttyd');
+const { buildArgs, ttydEnv, freePort, waitForPort, logLine } = require('../lib/ttyd');
 
 const base = { port: 1234, token: 'tok', platform: 'linux' };
 const args = (settings, extra) => buildArgs({ ...base, settings, ...extra });
@@ -67,3 +67,10 @@ test('COLORTERM reaches the command through the real ttyd', { skip: cp.spawnSync
   }
 });
 
+
+test('the logged command line carries no token, because the log is pasted into reports and mirrored to a file', () => {
+  const token = 'a3f9c2d4e5b6a7c8d9e0f1a2b3c4d5e6';
+  const line = logLine('ttyd', buildArgs({ ...base, token, settings: { extraArgs: ['-d', '7'] } }), token);
+  assert.ok(!line.includes(token), line);
+  assert.ok(line.startsWith('ttyd -d 7 -W -m 1 -p 1234 -i lo -b /<token> '), line);
+});
