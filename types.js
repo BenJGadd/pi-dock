@@ -86,6 +86,7 @@
  * @typedef {object} PageConfig
  * @property {string} wsUrl ttyd's websocket address.
  * @property {Record<string, unknown>} options xterm.js options (lib/options.js).
+ * @property {'6'|'11'} unicodeVersion Which table says how many cells a character takes (lib/options.js).
  * @property {Record<string, string>} theme piDock.theme, over VS Code's live colours.
  * @property {KeyConfig} keys
  * @property {Snapshot|null} restore The last page's snapshot, or null to start blank.

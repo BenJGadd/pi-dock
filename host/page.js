@@ -13,7 +13,7 @@
 'use strict';
 
 const vscode = require('vscode');
-const { xtermOptions } = require('../lib/options');
+const { xtermOptions, unicodeVersion } = require('../lib/options');
 const { terminalHtml, errorHtml } = require('../lib/webview');
 const { readSettings } = require('./settings');
 
@@ -121,6 +121,7 @@ function createPage({ context, output, server, sessions, keybindings, badge, onM
       config: {
         wsUrl: await websocketUrl(running),
         options: pageOptions(settings),
+        unicodeVersion: unicodeVersion(terminalSetting),
         theme: settings.theme || {},
         keys,
         restore: running === snapshotOf ? snapshot : null,
@@ -162,10 +163,13 @@ function createPage({ context, output, server, sessions, keybindings, badge, onM
    */
   const pageOptions = (settings) =>
     xtermOptions({
-      terminal: (key) => vscode.workspace.getConfiguration('terminal.integrated').get(key),
+      terminal: terminalSetting,
       editor: (key) => vscode.workspace.getConfiguration('editor').get(key),
       settings,
     });
+
+  /** @type {import('../lib/options').ReadSetting} */
+  const terminalSetting = (key) => vscode.workspace.getConfiguration('terminal.integrated').get(key);
 
   /** @param {string} error Why the shortcuts could not be read, from host/keys.js. */
   function warnNoChords(error) {

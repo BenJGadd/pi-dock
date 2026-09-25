@@ -17,7 +17,7 @@
 // checks). This file loads last and uses all of them: theme.js, keys.js, paste.js,
 // links.js, snapshot.js, socket.js.
 //
-// `Terminal`, `FitAddon`, `SerializeAddon` and `WebglAddon` come from the xterm.js files loaded
+// `Terminal`, `FitAddon`, `SerializeAddon`, `WebglAddon` and `Unicode11Addon` come from the xterm.js files loaded
 // before the page files. `acquireVsCodeApi` is how a page talks back to the extension. `start` is
 // last and lists everything a page does.
 
@@ -39,21 +39,25 @@ function statusLine(element) {
 }
 
 /**
- * Creates the terminal and the three add-ons the sidebar needs: fit to measure the panel, serialize
- * for snapshots, and WebGL to draw quickly.
+ * Creates the terminal and the add-ons the sidebar needs: fit to measure the panel, serialize for
+ * snapshots, the Unicode 11 table so an emoji is two cells wide as it is for Pi, and WebGL to draw
+ * quickly.
  *
  * @param {object} args
  * @param {Record<string, *>} args.options Font and cursor options from the extension (lib/options.js).
+ * @param {'6'|'11'} args.unicodeVersion The width table VS Code's own terminal uses (lib/options.js).
  * @param {Record<string, string>} args.theme The colours to start with.
  * @param {HTMLElement} args.container Where to draw.
  * @returns {{ term: *, fit: *, serialize: * }} The terminal, already on screen, and two add-ons.
  */
-function createTerminal({ options, theme, container }) {
+function createTerminal({ options, unicodeVersion, theme, container }) {
   const term = new Terminal({ ...options, fontFamily: fontStack(options.fontFamily || '', installedFont), theme });
   const fit = new FitAddon.FitAddon();
   const serialize = new SerializeAddon.SerializeAddon();
   term.loadAddon(fit);
   term.loadAddon(serialize);
+  term.loadAddon(new Unicode11Addon.Unicode11Addon());
+  term.unicode.activeVersion = unicodeVersion;
   term.open(container);
   addWebglRenderer(term);
   return { term, fit, serialize };
@@ -112,7 +116,7 @@ function start(config) {
   const say = statusLine(document.getElementById('status'));
   const host = acquireVsCodeApi();
 
-  const { term, fit, serialize } = createTerminal({ options: config.options, theme: currentTheme(config.theme), container });
+  const { term, fit, serialize } = createTerminal({ options: config.options, unicodeVersion: config.unicodeVersion, theme: currentTheme(config.theme), container });
   followTheme(term, config.theme);
 
   const kitty = mirrorKittyFlags(term);

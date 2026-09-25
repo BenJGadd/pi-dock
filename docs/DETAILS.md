@@ -76,6 +76,8 @@ so the terminal reads them directly and follows the VS Code terminal.
 - Font, size, line height, cursor style, blinking and scrollback come from `terminal.integrated.*`.
   A font you do not have installed is skipped.
 - 24-bit colour, and GPU rendering with a fallback.
+- An emoji is two cells wide, as it is for Pi and for VS Code's terminal, which is what keeps
+  Pi's scrollbar straight on a row with one. `terminal.integrated.unicodeVersion` decides here too.
 - Shift+Enter and other modifier chords reach Pi, as in VS Code's terminal.
 
 ## Keys

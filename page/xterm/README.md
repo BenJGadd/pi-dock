@@ -8,6 +8,7 @@ These are the exact builds VS Code 1.116 ships for its own terminal (`@xterm/xte
 | `addon-fit.js` | `@xterm/addon-fit` | 0.12.0-beta.197 |
 | `addon-webgl.js` | `@xterm/addon-webgl` | 0.20.0-beta.197 |
 | `addon-serialize.js` | `@xterm/addon-serialize` | 0.15.0-beta.197 |
+| `addon-unicode11.js` | `@xterm/addon-unicode11` | 0.10.0-beta.197 |
 
 All MIT (`LICENSE.txt`). To upgrade, replace the files from the npm tarballs
 (`https://registry.npmjs.org/@xterm/<name>/-/<name>-<version>.tgz`, `lib/` and `css/`) and run `npm test`.

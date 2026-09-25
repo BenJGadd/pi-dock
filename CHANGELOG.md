@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+Pi's scrollbar no longer breaks on a row with an emoji in it.
+
+- The terminal now measures an emoji as two cells wide, as Pi and VS Code's own terminal do.
+
 ## 0.2.0
 
 Sessions, clickable paths, image paste, a setup walkthrough and a new icon.
