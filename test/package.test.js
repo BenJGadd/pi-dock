@@ -72,7 +72,7 @@ test('lib/ stays free of vscode, so plain Node can test it; host/ is where the e
 test('the package carries only what the extension needs to run and what the editor shows about it', () => {
   const ignored = fs.readFileSync(path.join(root, '.vscodeignore'), 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'));
   for (const left of ['test/**', 'tools/**', 'docs/**', 'media/screenshots/**', 'types.js']) assert.ok(ignored.includes(left), `${left} is not part of the extension`);
-  for (const dir of ['host/', 'lib/', 'page/', 'pi/', 'media/walkthrough']) assert.ok(!ignored.some((p) => p.startsWith(dir)), `${dir} must be packaged`);
+  for (const dir of ['host/', 'lib/', 'page/', 'media/walkthrough']) assert.ok(!ignored.some((p) => p.startsWith(dir)), `${dir} must be packaged`);
   assert.ok(!/require\('\.\.?\/types'\)/.test(fs.readFileSync(path.join(root, 'extension.js'), 'utf8')), 'types.js is comments, so leaving it out costs nothing');
 });
 
@@ -98,4 +98,12 @@ test('the settings that decide what runs are machine scope, so a folder cannot s
   for (const key of ['piDock.command', 'piDock.ttydPath', 'piDock.dtachPath', 'piDock.extraArgs']) {
     assert.strictEqual(properties[key].scope, 'machine', key);
   }
+});
+
+test('nothing of the dock goes into Pi: no Pi extension is shipped or declared, and resume is Pi\'s own -c', () => {
+  assert.strictEqual(pkg.pi, undefined);
+  assert.ok(!fs.existsSync(path.join(root, 'pi')), 'no pi/ folder');
+  const { resumeArgs } = require('../lib/resume');
+  assert.deepStrictEqual(resumeArgs({ resume: true }), ['-c']);
+  assert.deepStrictEqual(resumeArgs({ resume: false }), []);
 });

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0
+
+Nothing of Pi Dock's runs inside Pi any more.
+
+- Session restore uses `pi -c` now: Pi comes back to the session last written to this folder.
+  The extension Pi Dock loaded into Pi to record its session, and its state file, are gone.
+- Pi loads what other installed extensions carry: an extension declares
+  `"pi": { "extensions": ["pi/file.js"] }` in its `package.json`, and the docked Pi and the
+  terminal profile get `-e` for each. A Pi started outside the editor does not.
+
 ## 0.2.3
 
 A folder can no longer decide what Pi Dock runs.

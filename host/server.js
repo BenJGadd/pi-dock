@@ -11,7 +11,6 @@ const vscode = require('vscode');
 const { buildArgs, ttydEnv, freePort, waitForPort, tailLines, logLine } = require('../lib/ttyd');
 const { sessionSocket, persistentCommand, killSession } = require('../lib/dtach');
 const { isInstalled } = require('../lib/executable');
-const { statePath } = require('../lib/resume');
 const { workspaceCwd } = require('./settings');
 
 const START_TIMEOUT_MS = 10000;
@@ -183,7 +182,7 @@ function createServer({ output, onCrash, version }) {
     output.appendLine(`[pi-dock] ${logLine(settings.ttydPath, args, server.token)}`);
     server.proc = cp.spawn(settings.ttydPath, args, {
       cwd,
-      env: ttydEnv(process.env, version, statePath(cwd)),
+      env: ttydEnv(process.env, version),
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe'],
     });

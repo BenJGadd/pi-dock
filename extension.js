@@ -44,6 +44,7 @@ const { createLinks } = require('./host/links');
 const { createBadge } = require('./host/badge');
 const { createToggle } = require('./host/toggle');
 const { createSessions } = require('./host/sessions');
+const { createExtensions } = require('./host/extensions');
 
 const VIEW_ID = 'piDock.terminal';
 
@@ -73,7 +74,8 @@ function activate(context) {
   const links = createLinks({ output, post });
   const badge = createBadge();
   const toggle = createToggle({ viewId: VIEW_ID });
-  const sessions = createSessions({ context, restart });
+  const piExtensions = createExtensions();
+  const sessions = createSessions({ restart, piExtensions });
   const check = () => checkSetup(readSettings(), () => sidebarSeen);
 
   /**
@@ -125,7 +127,7 @@ function activate(context) {
     vscode.commands.registerCommand('piDock.newSession', sessions.newSession),
     vscode.commands.registerCommand('piDock.resumeSession', sessions.resumeSession),
     vscode.commands.registerCommand('piDock.forkSession', sessions.forkSession),
-    registerProfile(version, sessions.extensionPath()),
+    registerProfile(version, piExtensions),
     watchWalkthrough({ readSettings, sidebarOpened: () => sidebarSeen }),
     keybindings.watch(() => page.refreshKeys()),
     watchChanges({ page, restart, checkSetup: check }),

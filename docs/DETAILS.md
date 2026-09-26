@@ -39,12 +39,11 @@ when it is found; **Pi Dock: Check Setup** does the same from the palette.
 **Moving the sidebar keeps Pi running.** VS Code destroys the page when you drag the view. Pi runs
 under dtach, so the new page reattaches to the same Pi, screen and history intact.
 
-**Closing or reloading the window ends the Pi process, not the conversation.** Pi Dock loads a
-small extension into Pi (`pi/pi-dock-session.js`) that records which session file is open, each
-time a session starts or you switch with `/new`, `/resume` or `/fork`. The record lives in
-`~/.local/state/pi-dock/<workspace hash>.json`, or under `$XDG_STATE_HOME`. The next start passes
-that file to Pi with `--session`. If the file is gone, Pi starts fresh. With `piDock.resume` off,
-every start is a new conversation.
+**Closing or reloading the window ends the Pi process, not the conversation.** The next start
+is `pi -c`, Pi's own way of continuing the conversation last written in this folder, whichever
+Pi wrote it and whether you switched with `/new`, `/resume` or `/fork`. With no session in the
+folder yet, Pi starts fresh. With `piDock.resume` off, every start is a new conversation.
+Nothing of Pi Dock's is inside Pi for this.
 
 One session per workspace folder. When Pi exits, the sidebar says so and waits for Enter; it never
 restarts in a loop.
@@ -54,15 +53,15 @@ Three commands end the running Pi and start it on a session of your choosing:
 - **Pi Dock: Resume Session…** lists this folder's saved conversations, newest first, by name or by
   the first thing you said, and restarts Pi on the one you pick.
 - **Pi Dock: Fork Session…** does the same on a copy.
-- **Pi Dock: New Session** forgets the recorded session and starts plain.
+- **Pi Dock: New Session** starts plain; the fresh session is then the one to come back to.
 
 **Pi Dock: Restart Pi** starts over on the same conversation.
 
 ## Pi in the panel
 
 **Terminal ▸ New Terminal ▸ Pi** runs the same `piDock.command` in VS Code's own terminal, in the
-workspace folder, with the same environment and the same session-recording extension. It starts
-plain rather than resuming. Whichever Pi started last is the one the sidebar comes back to. No ttyd
+workspace folder, with the same environment and the same Pi extensions. It starts plain rather
+than resuming. Whichever Pi wrote to its session last is the one the sidebar comes back to. No ttyd
 and no dtach are involved; the panel is VS Code's to keep alive.
 
 ## Look
@@ -146,13 +145,24 @@ Fonts and colours apply at once. A changed command or path offers to restart Pi.
 
 ## What Pi sees
 
-Every Pi that Pi Dock starts, in the sidebar or through the terminal profile, gets three
-environment variables and one extension:
+Every Pi that Pi Dock starts, in the sidebar or through the terminal profile, gets two
+environment variables, and the Pi extensions other installed VS Code extensions carry:
 
 - `COLORTERM=truecolor`.
 - `PI_DOCK=<Pi Dock's version>`, so a tool can tell it is running inside the editor.
-- `PI_DOCK_SESSION_STATE=<the state file for this folder>`.
-- `-e pi/pi-dock-session.js`, the extension that writes that file.
+- `-e <file>` for every Pi extension another installed VS Code extension carries. Pi Dock itself
+  puts nothing into Pi.
+
+A VS Code extension that ships a Pi extension declares it in its `package.json` with the key Pi
+packages already use, each path relative to the extension's own folder:
+
+```json
+"pi": { "extensions": ["pi/my-extension.js"] }
+```
+
+Pi Dock reads the installed extensions each time it starts Pi and loads every declared file that
+exists, so a Pi started inside the editor has them and a Pi started anywhere else does not. A path
+that leaves its extension's folder is ignored.
 
 For other extensions, `piDock.setBadge(value, tooltip)` puts `value` on the Pi icon in the activity
 bar with `tooltip` on hover; `0` clears it. It is hidden from the command palette, and is there for
@@ -199,8 +209,9 @@ about, and routes each page message to the feature that owns it.
 - `setup.js`, `profile.js`: the setup walkthrough checks; the terminal profile.
 - `log.js`: the output channel, mirrored to a file when `PI_DOCK_LOG` names one.
 
-**`lib/`** has no VS Code in it, so plain Node can test it: mentions, images, resume state, session
-listing, the dtach session, ttyd arguments, the page's HTML, xterm options, chords.
+**`lib/`** has no VS Code in it, so plain Node can test it: mentions, images, resume, session
+listing, the dtach session, ttyd arguments, the page's HTML, xterm options, chords, and which Pi
+extensions installed extensions carry.
 
 **`page/`** is the web page itself, one file per feature, loaded in the order `lib/webview.js`
 lists them:
@@ -212,8 +223,6 @@ lists them:
 - `socket.js`: the websocket to ttyd and its message format.
 - `main.js`: wires the page files and starts the terminal; loads last.
 - `xterm/`: the vendored xterm.js, which only the page loads.
-
-**`pi/pi-dock-session.js`** is the small extension that runs inside Pi and records the session.
 
 **`media/`** is what VS Code shows about the extension: the icons and the walkthrough pages.
 

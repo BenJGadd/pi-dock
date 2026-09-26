@@ -1,72 +1,69 @@
-// Which Pi session the next start joins: the one recorded last time, or one the person picked.
+// Which Pi session the next start joins: the last one in this folder, or one the person picked.
 //
 // A start is always a new Pi process (extension.js endSession says why), so the conversation
-// continues only because the process is pointed at a session file. Three places decide which:
-// Resume Session and Fork Session, for one start; the state file lib/resume.js keeps, for every
-// start after that; and New Session, which forgets the state so the start is plain. The state is
-// written by a small Pi extension shipped in pi/, which every Pi started here is given.
+// continues only because the process is told which one. Three places decide: Resume Session and
+// Fork Session, for one start; Pi's own `-c` (lib/resume.js) for every start after that; and New
+// Session, which makes the one start that follows plain.
 
 'use strict';
 
 const vscode = require('vscode');
 const { workspaceCwd } = require('./settings');
-const { statePath, readState, resumeArgs, clearState } = require('../lib/resume');
+const { resumeArgs } = require('../lib/resume');
+const { extensionFlags } = require('../lib/extensions');
 const { sessionDir, listSessions } = require('../lib/sessions');
 
 /**
  * @param {object} deps
- * @param {import('vscode').ExtensionContext} deps.context Where pi/ is, for the extension path.
+ * @param {() => string[]} deps.piExtensions The Pi extensions to load with `-e` (host/extensions.js).
  * @param {() => Promise<void>} deps.restart Ends Pi and starts it again; the next start reads
  *   `startCommand`.
  * @returns {{
  *   startCommand: (settings: import('../types').Settings) => string[],
  *   started: () => void,
- *   extensionPath: () => string,
  *   newSession: () => Promise<void>,
  *   resumeSession: () => Promise<void>,
  *   forkSession: () => Promise<void>,
  * }}
  */
-function createSessions({ context, restart }) {
+function createSessions({ restart, piExtensions }) {
   /** @type {string[]} arguments for the next Pi start only, from Resume Session or Fork Session */
   let nextStartArgs = [];
 
-  /** The state file for this workspace's Pi session. */
-  const stateFile = () => statePath(workspaceCwd());
-
-  /** The Pi extension shipped in pi/ that writes that file. */
-  const extensionPath = () => vscode.Uri.joinPath(context.extensionUri, 'pi', 'pi-dock-session.js').fsPath;
+  /** Whether the next start is plain: no `-c`, from New Session. */
+  let plainNext = false;
 
   /**
    * The command for the next Pi: `piDock.command`, then the one-shot arguments from Resume Session
-   * or Fork Session, or failing those `--session <file>` for the session recorded at the last start
-   * (lib/resume.js, when `piDock.resume` is on and the file still exists), then the extension that
-   * records the session for the start after this one. Pi reads `-e` alongside its other flags.
+   * or Fork Session, or nothing after New Session, or failing those `-c` (lib/resume.js, when
+   * `piDock.resume` is on), then `-e` for each Pi extension an installed VS Code extension carries
+   * (host/extensions.js).
    *
    * @param {import('../types').Settings} settings
    * @returns {string[]}
    */
   function startCommand(settings) {
     const base = settings.command && settings.command.length ? settings.command : ['pi'];
-    const session = nextStartArgs.length ? nextStartArgs : resumeArgs({ resume: settings.resume, state: readState(stateFile()) });
-    return [...base, ...session, '-e', extensionPath()];
+    const session = nextStartArgs.length ? nextStartArgs : plainNext ? [] : resumeArgs({ resume: settings.resume });
+    return [...base, ...session, ...extensionFlags(piExtensions())];
   }
 
   /** A start happened (or was not needed): the one-shot arguments are spent. */
   function started() {
     nextStartArgs = [];
+    plainNext = false;
   }
 
   /**
-   * "Pi Dock: New Session": forgets the recorded session and starts Pi plain, so the next window
-   * start comes back to this fresh one rather than the old.
+   * "Pi Dock: New Session": starts Pi plain. The fresh session is then the newest in the folder,
+   * so the next window start comes back to it rather than the old.
    *
    * @async
    * @returns {Promise<void>}
    */
   async function newSession() {
-    clearState(stateFile());
     nextStartArgs = [];
+    plainNext = true;
     await restart();
   }
 
@@ -101,7 +98,6 @@ function createSessions({ context, restart }) {
   return {
     startCommand,
     started,
-    extensionPath,
     newSession,
     resumeSession: () => pickSession('Resume', ['--session']),
     forkSession: () => pickSession('Fork', ['--fork']),

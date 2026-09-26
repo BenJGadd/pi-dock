@@ -2,7 +2,7 @@
 <h1 align="center">Pi Dock</h1>
 <p align="center">The real Pi, docked in your sidebar.</p>
 <p align="center">
-  <a href="https://github.com/BenJGadd/pi-dock/releases"><img alt="version 0.2.3" src="https://img.shields.io/badge/version-0.2.3-1D202C"></a>
+  <a href="https://github.com/BenJGadd/pi-dock/releases"><img alt="version 0.3.0" src="https://img.shields.io/badge/version-0.3.0-1D202C"></a>
   <a href="https://code.visualstudio.com"><img alt="VS Code 1.75 or newer" src="https://img.shields.io/badge/VS%20Code-1.75%2B-007ACC"></a>
   <a href="https://vscodium.com"><img alt="VSCodium 1.75 or newer" src="https://img.shields.io/badge/VSCodium-1.75%2B-0A9396"></a>
   <a href="https://pi.dev"><img alt="works with any Pi" src="https://img.shields.io/badge/pi-any%20version-60A5FA"></a>
